@@ -35,9 +35,9 @@ parser.add_argument('--num', '--data_num', default=5000, type=int, metavar='N', 
 parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',help='number of data loading workers (default: 4)')
 parser.add_argument('--kernel_type', type=str, default='gussi',  help='the type of kernel')
 parser.add_argument('--c', type=float, default=0.0,  help='the param of poly kernel')
-parser.add_argument('--GAA', type=int, default=0, help='use bn loss instead of mmd loss')
-parser.add_argument('--kernel_for_furthe', type=str, default='l_gussi', help='if use bn loss instead of mmd loss')
-parser.add_argument('--byRank', type=int, default=1, help='choose the second possible class as the target class, is not, randomly choose one')
+parser.add_argument('--GAA', type=int, default=0, help='use GAA instead of PAA')
+parser.add_argument('--kernel_for_furthe', type=str, default='l_gussi', help='kernel for search furthest feature')
+parser.add_argument('--byRank', type=int, default=1, help='choose target class by rank, if not, randomly choose')
 parser.add_argument('--method', type=int, default=1, help='1 for PAA, 2 for GAA, 3 for AA')
 parser.add_argument('--targetcls', type=int, default=2, help='select the target class indix, 2,10,100,500,1000')
 
@@ -120,7 +120,7 @@ def h(x_odd, y_odd, x_even, y_even, n0):
     diffy = torch.sum((y_even - y_odd)**2, axis=(2))
     diffxy = torch.sum((x_even - y_odd)**2, axis=(2))
     diffyx = torch.sum((y_even - x_odd)**2, axis=(2))
-    gamma = args.mmd_gaussian_multi * n0 * 2 /(torch.sum(diffx, axis=1, keepdim=True) + torch.sum(diffy, axis=1, keepdim=True) + torch.sum(diffxy, axis=1, keepdim=True) + torch.sum(diffyx, axis=1, keepdim=True))
+    gamma = n0 * 2 /(torch.sum(diffx, axis=1, keepdim=True) + torch.sum(diffy, axis=1, keepdim=True) + torch.sum(diffxy, axis=1, keepdim=True) + torch.sum(diffyx, axis=1, keepdim=True))
     # compute kernel values
     s1 = gaussian_kernel(diffx, gamma)
     s2 = gaussian_kernel(diffy, gamma)
@@ -133,7 +133,7 @@ def h(x_odd, y_odd, x_even, y_even, n0):
 
 def PAA_g_l(x, y):
     """
-    compute the linear time O(n) approximation of the MMD
+    compute the linear time O(n) approximation of the PAA_g
     :param x: source_feature
     :param y: target_feature
     :param alpha:
